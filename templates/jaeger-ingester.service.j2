@@ -1,0 +1,31 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=jaeger-ingester
+After=network-online.target
+StartLimitInterval=0
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+PIDFile=/var/run/jaeger-ingester.pid
+User={{ jaeger_system_user }}
+Group={{ jaeger_system_group }}
+PermissionsStartOnly=true
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/jaeger-ingester --config-file /etc/jaeger-ingester.yml
+
+SyslogIdentifier=jaeger-ingester
+KillMode=process
+Restart=always
+RestartSec=5
+
+LockPersonality=true
+NoNewPrivileges=true
+MemoryDenyWriteExecute=true
+PrivateTmp=true
+ProtectHome=true
+RemoveIPC=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

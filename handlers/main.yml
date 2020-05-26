@@ -1,0 +1,23 @@
+- name: restart jaeger-agent
+  systemd:
+    daemon_reload: true
+    name: jaeger-agent
+    state: restarted
+
+- name: restart jaeger-collector
+  systemd:
+    daemon_reload: true
+    name: jaeger-collector
+    state: restarted
+
+- name: restart jaeger-ingester
+  systemd:
+    daemon_reload: true
+    name: jaeger-ingester
+    state: restarted
+
+- name: restart jaeger-query
+  systemd:
+    daemon_reload: true
+    name: jaeger-query
+    state: restarted

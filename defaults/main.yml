@@ -1,0 +1,41 @@
+jaeger_system_user: jaeger
+jaeger_system_group: jaeger
+jaeger_version: 1.18.0
+jaeger_agent: false
+jaeger_collector: false
+jaeger_ingester: false
+jaeger_query: false
+
+jaeger_span_storage_type: elasticsearch
+
+jaeger_agent_admin_http_host_port: :14271
+jaeger_agent_http_server_host_port: :5778
+jaeger_agent_processor:
+  jaeger-compact:
+    server-host-port: ":6831"
+  jaeger-binary:
+    server-host-port: ":6832"
+  zipkin-compact:
+    server-host-port: ":5775"
+jaeger_agent_reporter:
+  grpc:
+    host-port: 127.0.0.1:14268
+
+jaeger_query_admin_http_host_port: :16687
+jaeger_query_es:
+  num-replicas: 0
+  server-urls: http://127.0.0.1:9200
+jaeger_query_query:
+  port: 16686
+
+jaeger_collector_admin_http_host_port: :14269
+jaeger_collector_http_server_host_port: :14268
+jaeger_collector_collector_grpc_port: 14250
+jaeger_collector_es:
+  num-replicas: 0
+  server-urls: http://127.0.0.1:9200
+
+# Just bunch of aliases
+jaeger_agent_span_storage_type: "{{ jaeger_span_storage_type }}"
+jaeger_collector_span_storage_type: "{{ jaeger_span_storage_type }}"
+jaeger_query_span_storage_type: "{{ jaeger_span_storage_type }}"

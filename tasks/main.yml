@@ -1,0 +1,168 @@
+- name: create jaeger system group
+  group:
+    name: "{{ jaeger_system_group }}"
+    system: true
+    state: present
+
+- name: create jaeger system user
+  user:
+    name: "{{ jaeger_system_user }}"
+    system: true
+    shell: "/usr/sbin/nologin"
+    group: "{{ jaeger_system_group }}"
+    createhome: false
+
+- name: "Download jaeger files"
+  become: false
+  get_url:
+    url: "https://github.com/jaegertracing/jaeger/releases/download/v{{ jaeger_version }}/jaeger-{{ jaeger_version }}-linux-amd64.tar.gz"
+    dest: "/tmp/"
+  delegate_to: localhost
+
+- name: "Create temporary directory"
+  become: false
+  file:
+    path: /tmp/jaeger-{{ jaeger_version }}-linux-amd64
+    state: directory
+  delegate_to: localhost
+
+- name: "Unarchive jaeger files"
+  become: false
+  unarchive:
+    src: "/tmp/jaeger-{{ jaeger_version }}-linux-amd64.tar.gz"
+    remote_src: yes
+    dest: /tmp/jaeger-{{jaeger_version}}-linux-amd64
+    creates: "/tmp/jaeger-{{jaeger_version}}-linux-amd64/jaeger-{{ jaeger_version }}-linux-amd64/jaeger-agent"
+  delegate_to: localhost
+  check_mode: false
+
+- name: propagate jaeger agent
+  copy:
+    src: "/tmp/jaeger-{{jaeger_version}}-linux-amd64/jaeger-{{ jaeger_version }}-linux-amd64/jaeger-agent"
+    dest: "/usr/local/bin/jaeger-agent"
+    mode: 0755
+    owner: "{{ jaeger_system_user }}"
+    group: "{{ jaeger_system_group }}"
+  when: jaeger_agent and jaeger_agent is defined
+  notify:
+    - restart jaeger-agent
+
+- name: propagate jaeger collector
+  copy:
+    src: "/tmp/jaeger-{{jaeger_version}}-linux-amd64/jaeger-{{ jaeger_version }}-linux-amd64/jaeger-collector"
+    dest: "/usr/local/bin/jaeger-collector"
+    mode: 0755
+    owner: "{{ jaeger_system_user }}"
+    group: "{{ jaeger_system_group }}"
+  when: jaeger_collector and jaeger_collector is defined
+  notify:
+    - restart jaeger-collector
+
+- name: propagate jaeger ingester
+  copy:
+    src: "/tmp/jaeger-{{jaeger_version}}-linux-amd64/jaeger-{{ jaeger_version }}-linux-amd64/jaeger-ingester"
+    dest: "/usr/local/bin/jaeger-ingester"
+    mode: 0755
+    owner: "{{ jaeger_system_user }}"
+    group: "{{ jaeger_system_group }}"
+  when: jaeger_ingester and jaeger_ingester is defined
+  notify:
+    - restart jaeger-ingester
+
+- name: propagate jaeger query
+  copy:
+    src: "/tmp/jaeger-{{jaeger_version}}-linux-amd64/jaeger-{{ jaeger_version }}-linux-amd64/jaeger-query"
+    dest: "/usr/local/bin/jaeger-query"
+    mode: 0755
+    owner: "{{ jaeger_system_user }}"
+    group: "{{ jaeger_system_group }}"
+  when: jaeger_query and jaeger_query is defined
+  notify:
+    - restart jaeger-query
+
+- name: create systemd service unit for jaeger-agent
+  template:
+    src: jaeger-agent.service.j2
+    dest: /etc/systemd/system/jaeger-agent.service
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_query and jaeger_query is defined
+  notify:
+    - restart jaeger-agent
+
+- name: create jaeger agent config
+  template:
+    src: jaeger-agent.yml.j2
+    dest: /etc/jaeger-agent.yml
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_agent and jaeger_agent is defined
+  notify:
+    - restart jaeger-agent
+
+- name: create systemd service unit for jaeger-collector
+  template:
+    src: jaeger-collector.service.j2
+    dest: /etc/systemd/system/jaeger-collector.service
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_collector and jaeger_collector is defined
+  notify:
+    - restart jaeger-collector
+
+- name: create jaeger collector config
+  template:
+    src: jaeger-collector.yml.j2
+    dest: /etc/jaeger-collector.yml
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_collector and jaeger_collector is defined
+  notify:
+    - restart jaeger-collector
+
+- name: create systemd service unit for jaeger-ingester
+  template:
+    src: jaeger-ingester.service.j2
+    dest: /etc/systemd/system/jaeger-ingester.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart jaeger-ingester
+
+- name: create jaeger ingester config
+  template:
+    src: jaeger-ingester.yml.j2
+    dest: /etc/jaeger-ingester.yml
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_ingester and jaeger_ingester is defined
+  notify:
+    - restart jaeger-ingester
+
+- name: create systemd service unit for jaeger-query
+  template:
+    src: jaeger-query.service.j2
+    dest: /etc/systemd/system/jaeger-query.service
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_query and jaeger_query is defined
+  notify:
+    - restart jaeger-query
+
+- name: create jaeger query config
+  template:
+    src: jaeger-query.yml.j2
+    dest: /etc/jaeger-query.yml
+    owner: root
+    group: root
+    mode: 0644
+  when: jaeger_query and jaeger_query is defined
+  notify:
+    - restart jaeger-query

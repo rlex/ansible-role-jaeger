@@ -1,0 +1,9 @@
+admin:
+  http:
+    host-port: {{ jaeger_collector_admin_http_host_port }}
+http-server:
+  host-port: {{ jaeger_collector_http_server_host_port }}
+collector:
+  grpc-port: {{ jaeger_collector_collector_grpc_port }}
+es:
+  {{ jaeger_collector_es | to_nice_yaml(indent=2) | indent(2, False) }}

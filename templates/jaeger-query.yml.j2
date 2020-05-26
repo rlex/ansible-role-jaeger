@@ -1,0 +1,7 @@
+admin:
+  http:
+    host-port: {{ jaeger_query_admin_http_host_port }}
+query:
+  {{ jaeger_query_query | to_nice_yaml(indent=2) | indent(2, False) }}
+es:
+  {{ jaeger_query_es | to_nice_yaml(indent=2) | indent(2, False) }}
